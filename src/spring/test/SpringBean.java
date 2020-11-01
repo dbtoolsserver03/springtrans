@@ -1,30 +1,41 @@
 package spring.test;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 public class SpringBean {
-	private String text;
+
 
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private UserMapper userMapper;
+
+
+//	private final UserMapper userMapper;
+//
+//	public SpringBean(UserMapper mp) {
+//		this.userMapper = mp;
+//	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void update() throws Exception {
+		User user = new User();
+		user.setId("5");
+		user.setName("更新後11");
+		userMapper.updateUser(user);
+		System.out.println("更新");
+
+		throw new Exception("ccccccccccccccc");
+		// Exceptionが発生するとロールバックされる。通常に終わるとコミットされる。
+		// String str = null;
+		// System.out.println(str.length());
+	}
 
 	public void show() {
-
-		List<Map<String, Object>> ret = jdbcTemplate.queryForList("select * from t_item");
-		for (Map<String, Object> map : ret) {
-			System.out.println(map.get("item_id").toString() + "-" + map.get("item_name").toString());
+		List<User> list = userMapper.getUserList();
+		for (User user : list) {
+			System.out.println(user.getId() + "-" + user.getName());
 		}
-	}
-
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
 	}
 }

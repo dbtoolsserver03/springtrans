@@ -1,0 +1,41 @@
+2020-11-04 21:51:10,767 - jdbc:sqlserver://localhost:1433;authentication=NotSpecified;authenticationScheme=nativeAuthentication;xopenStates=false;sendTimeAsDatetime=true;trustServerCertificate=false;TransparentNetworkIPResolution=true;serverNameAsACE=false;sendStringParametersAsUnicode=true;selectMethod=direct;responseBuffering=adaptive;packetSize=8000;multiSubnetFailover=false;loginTimeout=15;lockTimeout=-1;lastUpdateCount=true;encrypt=false;disableStatementPooling=true;databaseName=sqlservershow;columnEncryptionSetting=Disabled;applicationName=Microsoft JDBC Driver for SQL Server;applicationIntent=readwrite;
+2020-11-04 21:51:10,767 - sa
+
+
+
+SELECT CAST(tables.name as varchar(1000)) as TABLE_NAME,CAST(extended_properties.value as varchar(1000)) as COMMENTS FROM sys.tables  left outer join sys.extended_properties on   tables.object_id = extended_properties.major_id and extended_properties.minor_id = 0 WHERE 1=1  ORDER BY TABLE_NAME
+
+SELECT         CAST(isnull(g.value,'') as varchar(1000))  as COL_NM_JP,            a.colorder as COL_ID,            a.name as COL_NM_EN,         d.name as TBL_NM_EN ,            case           when exists               (SELECT 1                   FROM sysobjects                     where xtype = 'PK'                     and parent_obj = a.id                    and name in                          (SELECT name                            FROM sysindexes                             WHERE indid in (SELECT indid                                               FROM sysindexkeys                                           WHERE id = a.id                                                AND colid = a.colid))) then             'Y'             else              'N'           end as COL_IS_PK,            (b.name + '(') +         CAST(COLUMNPROPERTY(a.id, a.name, 'PRECISION') as varchar(50)) +  case CAST(isnull(COLUMNPROPERTY(a.id, a.name, 'Scale'), '0') as varchar(50)) when '0' then '' else ','+ CAST(isnull(COLUMNPROPERTY(a.id, a.name, 'Scale'), '0') as varchar(50)) end + ')'  as COL_TYPE_INFO,           b.name as COL_TYPE,            a.length as 占用字节数,           COLUMNPROPERTY(a.id, a.name, 'PRECISION') as COL_LENGTH,           isnull(COLUMNPROPERTY(a.id, a.name, 'Scale'), 0) as AFTER_DOT_NUM,            case           when a.isnullable = 1 then            'Y'             else              'N'           end as COL_CAN_NULL,         isnull(e.text, '') as COL_DEFAULT      FROM syscolumns a    left join systypes b       on a.xusertype = b.xusertype      inner join sysobjects d         on a.id = d.id      and d.xtype = 'U'        and d.name <> 'dtproperties'    left join syscomments e        on a.cdefault = e.id       left join sys.extended_properties g        on a.id = g.major_id        and a.colid = g.minor_id    left join sys.extended_properties f        on d.id = f.major_id        and f.minor_id = 0     where 1=1      and d.name in ('emp')  order by a.id, a.colorder
+
+
+execute sp_addextendedproperty 'MS_Description','雇員テーブル','user','dbo','table','emp',null,null;
+
+
+
+@Loggable(describe = "xxxxxxxxxxxxx")
+
+
+	<!-- ログ用 -->
+    <aop:aspectj-autoproxy proxy-target-class="true">
+        <aop:include name="loggerAspect" />
+    </aop:aspectj-autoproxy>
+
+    <bean id="loggerAspect" class="jp.co.csj.backsys.util.logger.LoggerAspect" />
+
+
+    java -classpath /ap/csj_batch/libs/*:/ap/csj_batch/libstest/*:/ap/csj_batch/build/libs/csj-batch.jar jp.co.csj.batch.TestDev
+    
+    
+    jar {
+    from {
+        configurations.runtime.collect{zipTree(it)}
+    }
+    manifest {
+        attributes 'Main-Class': 'com.yww.Main'
+    }
+}
+    
+    
+    发现idea中可直接打包成单个文件，输出到out/目录下，但运行的方式不太一样，找不到主类，需要执行命令java -classpath demo.jar com.yww.Main运行。
+
+    
